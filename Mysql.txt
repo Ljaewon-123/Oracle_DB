@@ -1,0 +1,298 @@
+-- (주석)
+mysql -u root -p
+
+show databases;   -- 현재가지고있는 데이터 베이스 확인
+use mysql;
+
+show tables;
+
+-- 데이터 베이스 생성 
+create database multi;
+use multi;
+show tables;
+
+-- 테이블 생성
+create table 테이블이름
+create table students(
+ id int,
+ name varchar(100),
+ phone char(13),
+ address varchar(1000),
+ job varchar(100)
+);
+desc students;    -- 테이블 확인  ( 속성만 확인)
+
+insert into students values(1,'hong-gd','010-1111-1111','seoul','ai');
+
+select *
+from students;
+
+alter table students 
+add job varchar(100);
+
+insert into students(id,name,address,job) values(2,'kim-sd','suwon','engineer');
+
+alter table students 
+modify job varchar(1000);
+
+drop table students;
+
+drop database multi;  
+
+
+C:\test_db-master
+dir 
+
+show databases;
+use employees;
+show tables;
+
+desc employees;   --해당 테이블의 설명
+
+select *
+from employees;
+
+select count(*) from employees;
+
+select emp_no,first_name,last_name
+from employees
+limit 10;
+
+select *
+from employees
+limit 1000;
+
+select *
+from employees
+where 조건;
+
+select *
+from employees
+where hire_date >= '2000-01-01';
+
+select count(*)
+from salaries;
+
+select *
+from salaries
+limit 100;
+-- limit 100 -->>  행을 100개까지 출력 
+
+select *
+from salaries
+where salary >= 150000;
+
+--문제 월급이 100000 보다 크고 150000 보다 작은 모든 데이터 출력 
+sleect *
+from salaries
+where salary > 100000 and salary <= 1500;
+
+
+1960 년대 태어난 사원의 이름(first-name)과 생일 출력
+select first_name,birth_date from employees where birth_date between '1960-01-01' and '1969-12-30';
+
+select *
+from salaries
+order by salary; asc(오름) , desc(내림)
+limit 100;
+
+-- 늦게 취업한 사람 나이순으로
+select *
+from employees
+order by hire_date desc,birth_date
+limit 100;
+
+-- 나이 순서대로 , 늦게 취업한 사람 순서대로 
+select *
+from employees
+order by birth_date, hire_date desc
+limit 100;
+
+select title
+from titles
+limit 100;
+
+-- 그룹
+select title
+from titles
+group by title;
+
+select title,count(*)
+from titles
+group by title;
+
+-- group by 하지 않은 데이터는 출력 불가 
+
+select title,emp_no
+from titles
+group by title;
+
+select emp_no,salary
+from salaries
+group by emp_no
+
+-- 집계함수에 조건 사용시, where 대신 group by having으로 사용
+-- group by 안되는건 나오면 안됨
+
+select count(*)
+from employees
+where gender ='M';
+
+-- 부서별 사원수
+select dept_no,count(dept_no)
+from dept_emp
+group by dept_no;
+
+부서별 사원수가 5만명 이상인 부서만 출력
+select dept_no,count(dept_no)
+from dept_emp
+group by dept_no having count(dept_no)  > 50000;
+
+맨위에 multi 조금 바꿔서 다시함 
+
+-- DML
+update students
+set phone = '010-2222-2222',
+address = 'suwon',
+job = 'engineer'
+where id =2;
+
+select * from students where id =1;
+
+rollback;  --- commit 한 상태로 다시 돌려줌 
+
+set autocommit = 0;
+
+grant all privileges on *.* to 'root'@'localhost' with grant option;
+
+-- % : 어디서든 접근 가능
+create user 'root'@'%'identified by 'dlwodnjs74101!';
+
+flush privileges;
+commit;
+
+DB : 여러 사용자들이 정보에 접근할 수 있게 만들어놓은 데이터들의 집합체
+RDBMS : ?
+SQL : 사용자가 데이터베이스에 요청
+
+DDL : 데이터 베이스나 테이블  생성,삭제,변경  create,alter,drop
+DML : 데이터 바꿈 select,update,insert,delete
+DCL : 권한   commit, rollback, grant, revoke
+
+-- 현재 근무하고있는 직원들의 전체  신상 명세 
+서로 다른 테이블의 emp_no의 같은 값으로 연결 
+-- select * from employees;
+-- select * from dept_emp;
+
+select * from employees emp  ->> emp라는 별명
+
+-- inner join 교집합
+
+select * from employees emp inner join dept_emp de on emp.emp_no = de.emp_no
+limit 100;
+
+-- 현재 근무하고 있는 직원들의 이름(first_name)과 부서(dept_no) 출력 
+select first_name,dept_no  from employees emp inner join dept_emp de
+ on emp.emp_no = de.emp_no limit 10;
+
+-- 전체 직원들의 이름과 직업 출력 
+-- 양쪽 이름이 같으면 지정해 줘야함 
+select first_name,title 
+from employees emp inner join titles tt on emp.emp_no = tt.emp_no 
+limit 10;
+
+-- using  컬럼에 이름이 같은경우 같이 사용하겠다는 뜻
+-- 결과의 emp_no 를 하나로 합쳐줌 
+select * from employees join titles using(emp_no) limit 10;
+
+-- natural join  -->>inner 조인중에 같은이름의 컬럼이 하나밖에 없을때 
+
+select *
+from employees emp natural join titles tt limit 100;
+
+select count(*)
+from employees join titles 
+-->>> 조건이 없으면 행끼리 전부 카테시안 곱이 되버림 전부 끼리끼리 연결됨 
+
+select count(*)
+from employees cross join titles;
+--->>> 카테시안 곱인 위와 똑같이 나옴
+
+--현재 근무하고있는 (9999-01-01) 직원들의 이름과 월급 출력 
+select first_name, salary
+from employees emp inner join salaries sal on emp.emp_no = sal.emp_no
+where sal.to_date = '9999-01-01'
+limit 10;
+
+-- 부서 이름과 관리자 이름을 출력 
+-- 그냥 join 으로 붙임 
+select dept_name,first_name
+from departments d join dept_manager dm on d.dept_no = dm.dept_no
+join employees emp on dm.emp_no = emp.emp_no
+where dm.to_date = '9999-01-01'
+limit 10;
+
+select dept_name , first_name
+from departments join dept_manager using(dept_no)
+join employees using(emp_no)
+where to_date = '9999-01-01';
+
+select dept_name , first_name
+from departments join dept_manager using(dept_no)
+join employees using(emp_no)
+where to_date = '9999-01-01';
+
+select dept_name , first_name
+from departments natural join dept_manager 
+natural join employees 
+where to_date = '9999-01-01';
+
+create table join_a(
+ aa int,
+ ab char(3)
+);
+create table join_b(
+ bb int,
+ ab char(3)
+);
+
+insert into join_a
+values(1,'aaa');
+insert into join_a
+values(2,'bbb');
+insert into join_a
+values(3,'ccc');
+
+insert into join_b
+values(4,'aaa');
+insert into join_b
+values(5,'bbb');
+insert into join_b
+values(6,'ccc');
+
+insert into join_a
+values(7,'ddd');
+insert into join_b
+values(8,'eee');
+
+select * from join_a inner join join_b using(ab);
+-- left join
+select * from join_a left join join_b using(ab);
+
+-- right join
+select * from join_a right join join_b using(ab);
+
+-- 서브쿼리 
+--- last_name 이 Haraldson 인 사원의 월급
+select emp_no
+from employees
+where last_name = 'Haraldson';
+
+select salary
+from salaries
+where emp_no in
+	(select emp_no
+	from employees
+	where last_name = 'Haraldson');
+
+
